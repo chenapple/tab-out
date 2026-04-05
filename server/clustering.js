@@ -355,8 +355,13 @@ Rules:
 - Group by INTENT, not by domain. Researching a topic might span GitHub, docs, and blog posts — they all belong together.
 - Be SPECIFIC and descriptive in mission names. "Debugging Next.js Hydration Error" is better than "Web Dev".
 - Every tab must appear in exactly one mission — no tab should be left out. If a tab is genuinely miscellaneous, create a "Miscellaneous" mission for it.
-- Keep the total number of missions reasonable (3–10). Don't create a separate mission for every single tab.
 - Write a concise 1-sentence summary for each mission describing what the user is trying to accomplish.
+
+IMPORTANT — granularity rules:
+- **Individual content pieces get their own mission.** Each YouTube video, blog post, article, or podcast is its own mission — named after the content (e.g., "Watching: Building Is the Easy Part Now | Mike Knoop"). Do NOT lump unrelated content tabs together under a generic name like "Watching AI Videos."
+- **localhost tabs are vibe coding project previews.** Group localhost tabs by PORT number — each port is a different project. Name the mission after the page title or what the project appears to be (e.g., "Brand DNA Tool (localhost:5173)"). If multiple localhost tabs share the same port, they're the same project.
+- **Tools and platforms that are clearly separate activities should not be lumped together.** "OpenClaw" and "Claude Code docs" and "Paperclip hiring platform" are three different things — give each its own mission unless the user clearly opened them as part of the same research session.
+- Prefer MORE granular missions over fewer broad ones. 15 specific missions is better than 5 vague ones.
 
 Respond ONLY with valid JSON in this exact format (no markdown, no explanation):
 {
