@@ -39,12 +39,6 @@
       <button class="icon-btn" id="recentClosedBtn" data-action="toggle-recent-closed" title="最近关闭的标签页">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" /></svg>
       </button>
-
-      <!-- Recently closed panel (popover) -->
-      <div class="recent-closed-panel" id="recentClosedPanel" style="display:none">
-        <div class="recent-panel-header">最近关闭的标签页</div>
-        <div id="recentClosedList"></div>
-      </div>
     </div>
   </header>
 
@@ -137,6 +131,12 @@
      TOAST — floats above everything, used for action confirmations
      Hidden by default via CSS (opacity:0, translateY)
      ================================================================ -->
+<!-- Recently closed panel — 必须在 body 直接子级，避免被 header animation/transform 的堆叠上下文干扰 -->
+<div class="recent-closed-panel" id="recentClosedPanel" style="display:none">
+  <div class="recent-panel-header">最近关闭的标签页</div>
+  <div id="recentClosedList"></div>
+</div>
+
 <div class="toast" id="toast">
   <!-- Checkmark circle icon (Heroicons outline) -->
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
