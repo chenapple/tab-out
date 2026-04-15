@@ -605,10 +605,19 @@ async function renderRecentClosedPanel() {
  */
 function toggleRecentClosedPanel() {
   const panel = document.getElementById('recentClosedPanel');
-  if (!panel) return;
+  const btn   = document.getElementById('recentClosedBtn');
+  if (!panel || !btn) return;
   const isVisible = panel.style.display === 'block';
-  panel.style.display = isVisible ? 'none' : 'block';
-  if (!isVisible) renderRecentClosedPanel();
+  if (isVisible) {
+    panel.style.display = 'none';
+    return;
+  }
+  // position: fixed，坐标基于按钮的视口位置，确保不被页面内容遮挡
+  const rect = btn.getBoundingClientRect();
+  panel.style.top   = (rect.bottom + 8) + 'px';
+  panel.style.right = (window.innerWidth - rect.right) + 'px';
+  panel.style.display = 'block';
+  renderRecentClosedPanel();
 }
 
 // Close the panel when clicking outside of it

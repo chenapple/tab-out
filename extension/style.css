@@ -1233,29 +1233,27 @@ footer { animation: fadeUp 0.5s ease 0.65s both; }
 
 /* ---- Recently Closed Panel ---- */
 .recent-closed-panel {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
+  /* fixed 脱离所有父级堆叠上下文，top/right 由 JS 动态设置 */
+  position: fixed;
   width: 300px;
-  /* Explicit solid colors — var(--card-bg) can fail in positioned overlay context */
-  background: #fffdf9;
-  border: 1px solid #e8e2da;
+  background: #ffffff;
+  border: 1px solid #d0cac3;
   border-radius: 8px;
-  box-shadow: 0 8px 32px rgba(26, 22, 19, 0.14), 0 2px 8px rgba(26, 22, 19, 0.08);
-  z-index: 200;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.07), 0 12px 40px rgba(0,0,0,0.13);
+  z-index: 9999;
   animation: fadeUp 0.2s ease both;
   overflow: hidden;
+  max-height: 80vh;
+  overflow-y: auto;
 }
 [data-theme="dark"] .recent-closed-panel {
-  background: #2a2520;
-  border-color: #3a342c;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
+  background: #2a2520 !important;
+  border-color: #3a342c !important;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .recent-closed-panel {
-    background: #2a2520;
-    border-color: #3a342c;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
+    background: #2a2520 !important;
+    border-color: #3a342c !important;
   }
 }
 
