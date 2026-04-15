@@ -83,8 +83,32 @@ chrome.tabs.onRemoved.addListener(() => {
 });
 
 // Update badge when a tab's URL changes (e.g. navigating to/from chrome://)
-chrome.tabs.onUpdated.addListener(() => {
+// Also record first-seen timestamp for tab aging feature.
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
   updateBadge();
+
+  // Only process when the URL is first set (not on every update)
+  if (!changeInfo.url) return;
+  const url = changeInfo.url;
+
+  // Skip browser-internal pages
+  if (
+    url.startsWith('chrome://') ||
+    url.startsWith('chrome-extension://') ||
+    url.startsWith('about:') ||
+    url.startsWith('edge://') ||
+    url.startsWith('brave://')
+  ) return;
+
+  try {
+    const { tabAges = {} } = await chrome.storage.local.get('tabAges');
+    if (!tabAges[url]) {
+      tabAges[url] = Date.now();
+      await chrome.storage.local.set({ tabAges });
+    }
+  } catch {
+    // Storage errors are non-fatal
+  }
 });
 
 // ─── Initial run ─────────────────────────────────────────────────────────────

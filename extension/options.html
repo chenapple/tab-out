@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tab Out 设置</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #1a1613;
+      --paper: #f8f5f0;
+      --warm-gray: #e8e2da;
+      --muted: #9a918a;
+      --accent-amber: #c8713a;
+      --accent-sage: #5a7a62;
+      --accent-rose: #b35a5a;
+      --card-bg: #fffdf9;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --ink: #e8e3da; --paper: #191510; --warm-gray: #2d2820;
+        --muted: #8a8078; --card-bg: #211d18;
+      }
+    }
+    :root[data-theme="dark"] {
+      --ink: #e8e3da; --paper: #191510; --warm-gray: #2d2820;
+      --muted: #8a8078; --card-bg: #211d18;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page {
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 48px 32px 80px;
+    }
+
+    h1 {
+      font-family: 'Newsreader', serif;
+      font-weight: 300;
+      font-size: 26px;
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 40px;
+    }
+
+    .section {
+      margin-bottom: 36px;
+    }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--warm-gray);
+    }
+
+    .field {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(154, 145, 138, 0.12);
+      gap: 16px;
+    }
+
+    .field:last-child { border-bottom: none; }
+
+    .field-label {
+      font-size: 14px;
+      color: var(--ink);
+    }
+
+    .field-desc {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .field-control { flex-shrink: 0; }
+
+    /* Toggle switch */
+    .toggle {
+      position: relative;
+      width: 40px;
+      height: 22px;
+      display: inline-block;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-track {
+      position: absolute;
+      inset: 0;
+      background: var(--warm-gray);
+      border-radius: 11px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle-track::before {
+      content: '';
+      position: absolute;
+      width: 16px; height: 16px;
+      left: 3px; top: 3px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .toggle input:checked + .toggle-track { background: var(--accent-sage); }
+    .toggle input:checked + .toggle-track::before { transform: translateX(18px); }
+
+    /* Select */
+    select {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      color: var(--ink);
+      background: var(--card-bg);
+      border: 1px solid var(--warm-gray);
+      border-radius: 6px;
+      padding: 6px 28px 6px 10px;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='%239a918a'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      background-size: 14px;
+      transition: border-color 0.15s;
+    }
+    select:focus { outline: none; border-color: var(--accent-amber); }
+
+    /* Textarea for custom hostnames */
+    textarea {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      color: var(--ink);
+      background: var(--card-bg);
+      border: 1px solid var(--warm-gray);
+      border-radius: 6px;
+      padding: 10px 12px;
+      width: 100%;
+      resize: vertical;
+      min-height: 80px;
+      transition: border-color 0.15s;
+      line-height: 1.6;
+    }
+    textarea:focus { outline: none; border-color: var(--accent-amber); }
+    textarea::placeholder { color: var(--muted); }
+
+    .textarea-field { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .textarea-field .field-control { width: 100%; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(60px);
+      background: var(--ink);
+      color: var(--paper);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 10px 20px;
+      border-radius: 8px;
+      opacity: 0;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .toast.visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <h1>Tab Out 设置</h1>
+  <p class="subtitle">修改后立即生效，下次打开新标签页时应用</p>
+
+  <!-- 外观 -->
+  <div class="section">
+    <div class="section-title">外观</div>
+
+    <div class="field">
+      <div>
+        <div class="field-label">主题</div>
+        <div class="field-desc">控制新标签页的配色风格</div>
+      </div>
+      <div class="field-control">
+        <select id="theme">
+          <option value="system">跟随系统</option>
+          <option value="light">浅色</option>
+          <option value="dark">深色</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- 功能 -->
+  <div class="section">
+    <div class="section-title">功能</div>
+
+    <div class="field">
+      <div>
+        <div class="field-label">启用音效</div>
+        <div class="field-desc">关闭标签页时播放轻微的"划过"声</div>
+      </div>
+      <div class="field-control">
+        <label class="toggle">
+          <input type="checkbox" id="sound" checked>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="field">
+      <div>
+        <div class="field-label">启用纸屑动画</div>
+        <div class="field-desc">关闭一组标签页时的庆祝效果</div>
+      </div>
+      <div class="field-control">
+        <label class="toggle">
+          <input type="checkbox" id="animation" checked>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="field">
+      <div>
+        <div class="field-label">标签页老化阈值</div>
+        <div class="field-desc">超过此天数的标签页会显示提醒</div>
+      </div>
+      <div class="field-control">
+        <select id="staleThresholdDays">
+          <option value="3">3 天</option>
+          <option value="7" selected>7 天</option>
+          <option value="14">14 天</option>
+          <option value="30">30 天</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- 常用主页 -->
+  <div class="section">
+    <div class="section-title">自定义常用主页</div>
+
+    <div class="field textarea-field">
+      <div>
+        <div class="field-label">自定义域名</div>
+        <div class="field-desc">这些域名的主页（/ 路径）会归入"常用主页"分组，每行一个 hostname</div>
+      </div>
+      <div class="field-control">
+        <textarea id="customLandingHostnames" placeholder="例如：&#10;notion.so&#10;linear.app&#10;figma.com"></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">已保存</div>
+
+<script src="options.js"></script>
+</body>
+</html>

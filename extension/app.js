@@ -17,6 +17,72 @@
 
 
 /* ----------------------------------------------------------------
+   APP SETTINGS — loaded from chrome.storage.local at startup
+   ---------------------------------------------------------------- */
+
+const DEFAULT_SETTINGS = {
+  theme: 'system',
+  staleThresholdDays: 7,
+  sound: true,
+  animation: true,
+  customLandingHostnames: [],
+};
+
+let appSettings = { ...DEFAULT_SETTINGS };
+
+// Tab first-seen timestamps: { url: timestampMs }
+let tabAges = {};
+
+async function getSettings() {
+  try {
+    const { settings = {} } = await chrome.storage.local.get('settings');
+    return { ...DEFAULT_SETTINGS, ...settings };
+  } catch {
+    return { ...DEFAULT_SETTINGS };
+  }
+}
+
+async function loadSettings() {
+  appSettings = await getSettings();
+  applyTheme(appSettings.theme);
+  updateThemeButton(appSettings.theme);
+}
+
+function applyTheme(theme) {
+  if (theme === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  } else if (theme === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+  }
+}
+
+function themeLabel(theme) {
+  if (theme === 'dark')  return '深色';
+  if (theme === 'light') return '浅色';
+  return '自动';
+}
+
+function updateThemeButton(theme) {
+  const btn   = document.getElementById('themeToggle');
+  const label = document.getElementById('themeLabel');
+  if (btn)   btn.title = `主题：${themeLabel(theme)}`;
+  if (label) label.textContent = themeLabel(theme);
+}
+
+async function cycleTheme() {
+  const order = ['system', 'light', 'dark'];
+  const next  = order[(order.indexOf(appSettings.theme) + 1) % order.length];
+  appSettings.theme = next;
+  applyTheme(next);
+  updateThemeButton(next);
+  const { settings = {} } = await chrome.storage.local.get('settings');
+  await chrome.storage.local.set({ settings: { ...settings, theme: next } });
+}
+
+
+/* ----------------------------------------------------------------
    CHROME TABS — Direct API Access
 
    Since this page IS the extension's new tab page, it has full
@@ -296,6 +362,7 @@ async function dismissSavedTab(id) {
  * A filtered noise sweep that descends in pitch, like air moving.
  */
 function playCloseSound() {
+  if (!appSettings.sound) return;
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     const t = ctx.currentTime;
@@ -345,6 +412,7 @@ function playCloseSound() {
  * Pure CSS + JS, no libraries.
  */
 function shootConfetti(x, y) {
+  if (!appSettings.animation) return;
   const colors = [
     '#c8713a', // amber
     '#e8a070', // amber light
@@ -490,6 +558,68 @@ function timeAgo(dateStr) {
   if (diffDays === 1) return '昨天';
   return diffDays + ' 天前';
 }
+
+/**
+ * renderRecentClosedPanel()
+ *
+ * Fetches the last 10 closed tabs via chrome.sessions API and renders
+ * them inside the #recentClosedList element.
+ */
+async function renderRecentClosedPanel() {
+  const list = document.getElementById('recentClosedList');
+  if (!list) return;
+
+  let sessions = [];
+  try {
+    sessions = await chrome.sessions.getRecentlyClosed({ maxResults: 10 });
+  } catch {
+    list.innerHTML = '<div class="recent-empty">无法获取最近关闭记录</div>';
+    return;
+  }
+
+  const closedTabs = sessions.filter(s => s.tab).map(s => s.tab);
+
+  if (closedTabs.length === 0) {
+    list.innerHTML = '<div class="recent-empty">暂无最近关闭的标签页</div>';
+    return;
+  }
+
+  list.innerHTML = closedTabs.map(tab => {
+    let domain = '';
+    try { domain = new URL(tab.url).hostname; } catch {}
+    const faviconUrl = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=16` : '';
+    const title = tab.title || tab.url || '未知页面';
+    const sid   = (tab.sessionId || '').replace(/"/g, '&quot;');
+    return `
+      <div class="recent-item" data-action="restore-session" data-session-id="${sid}" title="${title.replace(/"/g, '&quot;')}">
+        ${faviconUrl ? `<img class="chip-favicon" src="${faviconUrl}" alt="" onerror="this.style.display='none'">` : ''}
+        <span class="recent-title">${title}</span>
+      </div>`;
+  }).join('');
+}
+
+/**
+ * toggleRecentClosedPanel()
+ *
+ * Shows or hides the recently-closed popover and populates it on open.
+ */
+function toggleRecentClosedPanel() {
+  const panel = document.getElementById('recentClosedPanel');
+  if (!panel) return;
+  const isVisible = panel.style.display === 'block';
+  panel.style.display = isVisible ? 'none' : 'block';
+  if (!isVisible) renderRecentClosedPanel();
+}
+
+// Close the panel when clicking outside of it
+document.addEventListener('click', (e) => {
+  const panel = document.getElementById('recentClosedPanel');
+  const btn   = document.getElementById('recentClosedBtn');
+  if (!panel || panel.style.display !== 'block') return;
+  if (!panel.contains(e.target) && !btn.contains(e.target)) {
+    panel.style.display = 'none';
+  }
+});
 
 /**
  * getGreeting() — "Good morning / afternoon / evening"
@@ -834,6 +964,9 @@ function renderDomainCard(group) {
   const visibleTabs = uniqueTabs.slice(0, 8);
   const extraCount  = uniqueTabs.length - visibleTabs.length;
 
+  const staleMs = (appSettings.staleThresholdDays || 7) * 86400000;
+  const now = Date.now();
+
   const pageChips = visibleTabs.map(tab => {
     let label = cleanTitle(smartTitle(stripTitleNoise(tab.title || ''), tab.url), group.domain);
     // For localhost tabs, prepend port number so you can tell projects apart
@@ -849,9 +982,17 @@ function renderDomainCard(group) {
     let domain = '';
     try { domain = new URL(tab.url).hostname; } catch {}
     const faviconUrl = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=16` : '';
+
+    // Stale badge
+    const firstSeen = tabAges[tab.url];
+    const ageMs = firstSeen ? (now - firstSeen) : 0;
+    const ageDays = Math.floor(ageMs / 86400000);
+    const staleTag = (firstSeen && ageMs >= staleMs)
+      ? ` <span class="chip-stale-badge">${ageDays} 天</span>` : '';
+
     return `<div class="page-chip clickable${chipClass}" data-action="focus-tab" data-tab-url="${safeUrl}" title="${safeTitle}">
       ${faviconUrl ? `<img class="chip-favicon" src="${faviconUrl}" alt="" onerror="this.style.display='none'">` : ''}
-      <span class="chip-text">${label}</span>${dupeTag}
+      <span class="chip-text">${label}</span>${dupeTag}${staleTag}
       <div class="chip-actions">
         <button class="chip-action chip-save" data-action="defer-single-tab" data-tab-url="${safeUrl}" data-tab-title="${safeTitle}" title="稍后阅读">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" /></svg>
@@ -1026,9 +1167,16 @@ async function renderStaticDashboard() {
   if (greetingEl) greetingEl.textContent = getGreeting();
   if (dateEl)     dateEl.textContent     = getDateDisplay();
 
-  // --- Fetch tabs ---
+  // --- Fetch tabs + tab age data ---
   await fetchOpenTabs();
   const realTabs = getRealTabs();
+
+  try {
+    const stored = await chrome.storage.local.get('tabAges');
+    tabAges = stored.tabAges || {};
+  } catch {
+    tabAges = {};
+  }
 
   // --- Group tabs by domain ---
   // Landing pages (Gmail inbox, Twitter home, etc.) get their own special group
@@ -1042,6 +1190,8 @@ async function renderStaticDashboard() {
     { hostname: 'www.youtube.com',     pathExact: ['/'] },
     // Merge personal patterns from config.local.js (if it exists)
     ...(typeof LOCAL_LANDING_PAGE_PATTERNS !== 'undefined' ? LOCAL_LANDING_PAGE_PATTERNS : []),
+    // Merge custom hostnames from settings page
+    ...(appSettings.customLandingHostnames || []).map(h => ({ hostname: h })),
   ];
 
   function isLandingPage(url) {
@@ -1150,7 +1300,19 @@ async function renderStaticDashboard() {
 
   if (domainGroups.length > 0 && openTabsSection) {
     if (openTabsSectionTitle) openTabsSectionTitle.textContent = '当前标签页';
-    openTabsSectionCount.innerHTML = `${domainGroups.length} 个网站 &nbsp;&middot;&nbsp; <button class="action-btn close-tabs" data-action="close-all-open-tabs" style="font-size:11px;padding:3px 10px;">${ICONS.close} 关闭全部 ${realTabs.length} 个标签页</button>`;
+
+    // Count stale tabs for the cleanup button
+    const staleMs  = (appSettings.staleThresholdDays || 7) * 86400000;
+    const staleNow = Date.now();
+    const staleCount = realTabs.filter(t => {
+      const firstSeen = tabAges[t.url];
+      return firstSeen && (staleNow - firstSeen) >= staleMs;
+    }).length;
+    const staleBtn = staleCount > 0
+      ? ` &nbsp;&middot;&nbsp; <button class="action-btn stale-clean-btn" data-action="close-stale-tabs" style="font-size:11px;padding:3px 10px;" title="关闭打开超过 ${appSettings.staleThresholdDays} 天的标签页">清理 ${staleCount} 个陈旧标签</button>`
+      : '';
+
+    openTabsSectionCount.innerHTML = `${domainGroups.length} 个网站 &nbsp;&middot;&nbsp; <button class="action-btn close-tabs" data-action="close-all-open-tabs" style="font-size:11px;padding:3px 10px;">${ICONS.close} 关闭全部 ${realTabs.length} 个标签页</button>${staleBtn}`;
     openTabsMissionsEl.innerHTML = domainGroups.map(g => renderDomainCard(g)).join('');
     openTabsSection.style.display = 'block';
   } else if (openTabsSection) {
@@ -1431,6 +1593,50 @@ document.addEventListener('click', async (e) => {
     showToast('所有标签页已关闭。重新开始。');
     return;
   }
+
+  // ---- Close stale (old) tabs ----
+  if (action === 'close-stale-tabs') {
+    const staleMs  = (appSettings.staleThresholdDays || 7) * 86400000;
+    const staleNow = Date.now();
+    const staleTabs = openTabs.filter(t => {
+      if (!t.url || t.url.startsWith('chrome') || t.url.startsWith('about:')) return false;
+      const firstSeen = tabAges[t.url];
+      return firstSeen && (staleNow - firstSeen) >= staleMs;
+    });
+    const staleUrls = staleTabs.map(t => t.url);
+    if (staleUrls.length === 0) { showToast('没有陈旧标签页'); return; }
+    await closeTabsByUrls(staleUrls);
+    playCloseSound();
+    showToast(`已关闭 ${staleUrls.length} 个陈旧标签页`);
+    await renderDashboard();
+    return;
+  }
+
+  // ---- Theme toggle ----
+  if (action === 'toggle-theme') {
+    await cycleTheme();
+    return;
+  }
+
+  // ---- Toggle recently closed panel ----
+  if (action === 'toggle-recent-closed') {
+    toggleRecentClosedPanel();
+    return;
+  }
+
+  // ---- Restore a recently closed tab ----
+  if (action === 'restore-session') {
+    const sessionId = actionEl.dataset.sessionId;
+    if (sessionId) {
+      try {
+        await chrome.sessions.restore(sessionId);
+      } catch {
+        showToast('恢复失败');
+      }
+    }
+    document.getElementById('recentClosedPanel').style.display = 'none';
+    return;
+  }
 });
 
 // ---- Archive toggle — expand/collapse the archive section ----
@@ -1479,4 +1685,7 @@ document.addEventListener('input', async (e) => {
 /* ----------------------------------------------------------------
    INITIALIZE
    ---------------------------------------------------------------- */
-renderDashboard();
+(async () => {
+  await loadSettings();
+  await renderDashboard();
+})();

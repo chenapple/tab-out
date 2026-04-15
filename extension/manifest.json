@@ -3,7 +3,8 @@
   "name": "Tab Out",
   "version": "1.0.0",
   "description": "掌控你的标签页。新标签页按域名分组显示所有打开的标签页，优雅地管理和关闭它们。",
-  "permissions": ["tabs", "activeTab", "storage"],
+  "permissions": ["tabs", "activeTab", "storage", "sessions"],
+  "options_page": "options.html",
   "chrome_url_overrides": { "newtab": "index.html" },
   "background": { "service_worker": "background.js" },
   "action": {
