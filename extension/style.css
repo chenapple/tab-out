@@ -1237,13 +1237,26 @@ footer { animation: fadeUp 0.5s ease 0.65s both; }
   top: calc(100% + 8px);
   right: 0;
   width: 300px;
-  background: var(--card-bg);
-  border: 1px solid var(--warm-gray);
+  /* Explicit solid colors — var(--card-bg) can fail in positioned overlay context */
+  background: #fffdf9;
+  border: 1px solid #e8e2da;
   border-radius: 8px;
-  box-shadow: 0 8px 32px var(--shadow);
+  box-shadow: 0 8px 32px rgba(26, 22, 19, 0.14), 0 2px 8px rgba(26, 22, 19, 0.08);
   z-index: 200;
   animation: fadeUp 0.2s ease both;
   overflow: hidden;
+}
+[data-theme="dark"] .recent-closed-panel {
+  background: #2a2520;
+  border-color: #3a342c;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .recent-closed-panel {
+    background: #2a2520;
+    border-color: #3a342c;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
 }
 
 .recent-panel-header {
