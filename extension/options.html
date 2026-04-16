@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tab Out 设置</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --ink: #1a1613;
@@ -201,8 +201,21 @@
 
     <div class="field">
       <div>
-        <div class="field-label">主题</div>
-        <div class="field-desc">控制新标签页的配色风格</div>
+        <div class="field-label">设计风格</div>
+        <div class="field-desc">暖色调：衬线字体、纸质感；Google：Roboto 字体、蓝色系</div>
+      </div>
+      <div class="field-control">
+        <select id="designTheme">
+          <option value="warm">暖色调（默认）</option>
+          <option value="material">Google 风格</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <div>
+        <div class="field-label">颜色模式</div>
+        <div class="field-desc">控制新标签页的明暗配色</div>
       </div>
       <div class="field-control">
         <select id="theme">

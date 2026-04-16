@@ -22,6 +22,7 @@
 
 const DEFAULT_SETTINGS = {
   theme: 'system',
+  designTheme: 'warm',
   staleThresholdDays: 7,
   sound: true,
   animation: true,
@@ -46,6 +47,15 @@ async function loadSettings() {
   appSettings = await getSettings();
   applyTheme(appSettings.theme);
   updateThemeButton(appSettings.theme);
+  applyDesignTheme(appSettings.designTheme);
+}
+
+function applyDesignTheme(designTheme) {
+  if (designTheme === 'material') {
+    document.documentElement.setAttribute('data-design', 'material');
+  } else {
+    document.documentElement.removeAttribute('data-design');
+  }
 }
 
 function applyTheme(theme) {

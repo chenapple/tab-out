@@ -2,6 +2,7 @@
 
 const DEFAULT_SETTINGS = {
   theme: 'system',
+  designTheme: 'warm',
   staleThresholdDays: 7,
   sound: true,
   animation: true,
@@ -18,6 +19,7 @@ async function loadSettings() {
   const { settings = {} } = await chrome.storage.local.get('settings');
   const s = { ...DEFAULT_SETTINGS, ...settings };
 
+  document.getElementById('designTheme').value = s.designTheme;
   document.getElementById('theme').value = s.theme;
   document.getElementById('sound').checked = s.sound;
   document.getElementById('animation').checked = s.animation;
@@ -27,6 +29,7 @@ async function loadSettings() {
 
   // Apply theme preview on the options page itself
   applyThemePreview(s.theme);
+  applyDesignThemePreview(s.designTheme);
 }
 
 function applyThemePreview(theme) {
@@ -36,6 +39,16 @@ function applyThemePreview(theme) {
     document.documentElement.setAttribute('data-theme', 'light');
   } else {
     document.documentElement.removeAttribute('data-theme');
+  }
+}
+
+function applyDesignThemePreview(designTheme) {
+  if (designTheme === 'material') {
+    document.documentElement.setAttribute('data-design', 'material');
+    document.body.style.fontFamily = "'Roboto', sans-serif";
+  } else {
+    document.documentElement.removeAttribute('data-design');
+    document.body.style.fontFamily = "'DM Sans', sans-serif";
   }
 }
 
@@ -50,6 +63,7 @@ async function saveSettings() {
 
   const updated = {
     ...settings,
+    designTheme: document.getElementById('designTheme').value,
     theme: document.getElementById('theme').value,
     sound: document.getElementById('sound').checked,
     animation: document.getElementById('animation').checked,
@@ -60,8 +74,9 @@ async function saveSettings() {
   await chrome.storage.local.set({ settings: updated });
   showToast();
 
-  // Update theme preview
+  // Update previews
   applyThemePreview(updated.theme);
+  applyDesignThemePreview(updated.designTheme);
 }
 
 // Load on startup

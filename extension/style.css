@@ -1329,3 +1329,191 @@ footer { animation: fadeUp 0.5s ease 0.65s both; }
   background: rgba(179, 90, 90, 0.1);
   border-color: var(--accent-rose);
 }
+
+
+/* ================================================================
+   MATERIAL DESIGN THEME — [data-design="material"] on <html>
+   Google 蓝色系 + Roboto 字体 + MD3 Elevation
+   与现有暖色调主题并存，用户可在设置页切换
+   ================================================================ */
+
+/* ---- 浅色 Material 变量 ---- */
+:root[data-design="material"] {
+  --ink: #202124;
+  --paper: #f8f9fa;
+  --warm-gray: #dadce0;
+  --muted: #5f6368;
+  --accent-amber: #1a73e8;   /* Google Blue — 主操作色 */
+  --accent-sage: #34a853;    /* Google Green */
+  --accent-slate: #4285f4;   /* Google Blue alt */
+  --accent-rose: #ea4335;    /* Google Red */
+  --status-active: #34a853;
+  --status-cooling: #f9ab00;
+  --status-abandoned: #ea4335;
+  --card-bg: #ffffff;
+  --shadow: rgba(60, 64, 67, 0.15);
+}
+
+/* ---- 深色 Material 变量（媒体查询 + 显式 data-theme） ---- */
+@media (prefers-color-scheme: dark) {
+  :root[data-design="material"]:not([data-theme="light"]) {
+    --ink: #e8eaed;
+    --paper: #202124;
+    --warm-gray: #3c4043;
+    --muted: #9aa0a6;
+    --card-bg: #292a2d;
+    --shadow: rgba(0, 0, 0, 0.4);
+    --accent-amber: #8ab4f8;
+    --accent-sage: #81c995;
+    --status-active: #81c995;
+    --status-abandoned: #f28b82;
+    --accent-rose: #f28b82;
+  }
+}
+:root[data-design="material"][data-theme="dark"] {
+  --ink: #e8eaed;
+  --paper: #202124;
+  --warm-gray: #3c4043;
+  --muted: #9aa0a6;
+  --card-bg: #292a2d;
+  --shadow: rgba(0, 0, 0, 0.4);
+  --accent-amber: #8ab4f8;
+  --accent-sage: #81c995;
+  --status-active: #81c995;
+  --status-abandoned: #f28b82;
+  --accent-rose: #f28b82;
+}
+
+/* ---- 字体：Roboto 替换 DM Sans / Newsreader ---- */
+[data-design="material"] body {
+  font-family: 'Roboto', sans-serif;
+}
+
+/* 隐藏暖色调纸质纹理 */
+[data-design="material"] body::before {
+  display: none;
+}
+
+/* 大标题：去衬线、正常字重 */
+[data-design="material"] .header-left h1 {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 400;
+  font-size: 26px;
+  letter-spacing: 0;
+}
+
+/* Section 标题：改成 Roboto 小标签风格 */
+[data-design="material"] .section-header h2 {
+  font-family: 'Roboto', sans-serif;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* 数字展示区（footer stat + mission count） */
+[data-design="material"] .stat-num,
+[data-design="material"] .mission-page-count {
+  font-family: 'Roboto', sans-serif;
+}
+
+/* 空状态标题去掉斜体 */
+[data-design="material"] .empty-title {
+  font-family: 'Roboto', sans-serif;
+  font-style: normal;
+}
+
+/* ---- 卡片：MD3 Elevation Level 1 + 大圆角 ---- */
+[data-design="material"] .mission-card {
+  border-radius: 12px;
+  border-color: transparent;
+  box-shadow: 0 1px 2px rgba(60, 64, 67, 0.10),
+              0 2px 6px rgba(60, 64, 67, 0.07);
+}
+
+[data-design="material"] .mission-card:hover {
+  box-shadow: 0 2px 8px rgba(60, 64, 67, 0.15),
+              0 8px 24px rgba(60, 64, 67, 0.10);
+  transform: translateY(-1px);
+}
+
+/* ---- 按钮：Roboto + 更大圆角（Material pill 风格） ---- */
+[data-design="material"] .action-btn {
+  font-family: 'Roboto', sans-serif;
+  border-radius: 20px;
+  letter-spacing: 0.2px;
+}
+
+[data-design="material"] .tab-cleanup-btn,
+[data-design="material"] .update-banner-btn {
+  font-family: 'Roboto', sans-serif;
+  border-radius: 20px;
+}
+
+[data-design="material"] .icon-btn {
+  font-family: 'Roboto', sans-serif;
+  border-radius: 20px;
+}
+
+[data-design="material"] .archive-toggle {
+  font-family: 'Roboto', sans-serif;
+}
+
+[data-design="material"] .archive-search {
+  font-family: 'Roboto', sans-serif;
+  border-radius: 24px;
+}
+
+/* ---- Banner：蓝色调替换琥珀色 ---- */
+[data-design="material"] .tab-cleanup-banner {
+  background: rgba(26, 115, 232, 0.05);
+  border-color: rgba(26, 115, 232, 0.2);
+  border-radius: 12px;
+}
+
+[data-design="material"] .tab-cleanup-icon {
+  background: rgba(26, 115, 232, 0.1);
+}
+
+[data-design="material"] .tab-cleanup-icon svg {
+  color: var(--accent-amber);
+}
+
+/* ---- 最近关闭面板：MD3 大圆角 + CSS 变量颜色 ---- */
+[data-design="material"] .recent-closed-panel {
+  border-radius: 12px;
+  background: var(--card-bg) !important;
+  border-color: var(--warm-gray) !important;
+  box-shadow: 0 4px 8px rgba(60, 64, 67, 0.12),
+              0 16px 48px rgba(60, 64, 67, 0.15);
+}
+
+/* ---- 悬停高亮：蓝色调 ---- */
+[data-design="material"] .page-chip.clickable:hover {
+  background: rgba(26, 115, 232, 0.04);
+}
+
+[data-design="material"] .recent-item:hover {
+  background: rgba(26, 115, 232, 0.05);
+}
+
+/* ---- 稍后阅读复选框：蓝色 ---- */
+[data-design="material"] .deferred-checkbox:hover {
+  border-color: var(--accent-amber);
+}
+
+[data-design="material"] .deferred-checkbox:checked {
+  background: var(--accent-amber);
+  border-color: var(--accent-amber);
+}
+
+[data-design="material"] .deferred-title:hover {
+  color: var(--accent-amber);
+}
+
+/* ---- 搜索框聚焦：蓝色 ---- */
+[data-design="material"] .archive-search:focus {
+  border-color: var(--accent-amber);
+}
