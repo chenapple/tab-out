@@ -56,6 +56,22 @@ function applyDesignTheme(designTheme) {
   } else {
     document.documentElement.removeAttribute('data-design');
   }
+  updateDesignThemeButton(designTheme);
+}
+
+function updateDesignThemeButton(designTheme) {
+  const btn   = document.getElementById('designThemeToggle');
+  const label = document.getElementById('designThemeLabel');
+  if (btn)   btn.title = `设计风格：${designTheme === 'material' ? 'Google' : '暖色调'}`;
+  if (label) label.textContent = designTheme === 'material' ? 'G' : '暖';
+}
+
+async function cycleDesignTheme() {
+  const next = appSettings.designTheme === 'material' ? 'warm' : 'material';
+  appSettings.designTheme = next;
+  applyDesignTheme(next);
+  const { settings = {} } = await chrome.storage.local.get('settings');
+  await chrome.storage.local.set({ settings: { ...settings, designTheme: next } });
 }
 
 function applyTheme(theme) {
@@ -1628,6 +1644,12 @@ document.addEventListener('click', async (e) => {
     playCloseSound();
     showToast(`已关闭 ${staleUrls.length} 个陈旧标签页`);
     await renderDashboard();
+    return;
+  }
+
+  // ---- Design theme toggle ----
+  if (action === 'toggle-design-theme') {
+    await cycleDesignTheme();
     return;
   }
 
